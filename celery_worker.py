@@ -3,9 +3,10 @@ from celery import Celery
 
 celery_app = Celery(
     "invoice_tracker",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0",
+    broker="redis://redis:6379/0",
+    backend="redis://redis:6379/0",
 )
+
 
 @celery_app.task(name="dummy_task")
 def dummy_task(message: str):
