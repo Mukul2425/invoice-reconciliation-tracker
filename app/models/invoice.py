@@ -10,18 +10,29 @@ class InvoiceStatus(str, enum.Enum):
     PAID = "PAID"
     OVERDUE = "OVERDUE"
 
+from sqlalchemy import Column, Integer, String, Float, Date, Enum as PgEnum, ForeignKey, DateTime, func
+from sqlalchemy.orm import relationship
+from datetime import timedelta, date
+import uuid
+
+from app.db.base_class import Base
+from app.models.user import User
+from app.schemas.invoice import InvoiceStatus
+
 class Invoice(Base):
     __tablename__ = "invoices"
 
     id = Column(Integer, primary_key=True, index=True)
-    invoice_number = Column(String, unique=True, index=True, nullable=False)
-    vendor_name = Column(String, index=True)
+    invoice_number = Column(String, unique=True, index=True, default=lambda: str(uuid.uuid4())[:8])
+    vendor_name = Column(String, index=True, nullable=False)
     amount = Column(Float, nullable=False)
-    due_date = Column(Date)
-    status = Column(Enum(InvoiceStatus), default=InvoiceStatus.PENDING)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    due_date = Column(Date, default=lambda: date.today() + timedelta(days=30))
+    status = Column(PgEnum(InvoiceStatus), default=InvoiceStatus.PENDING)
+    created_at = Column(DateTime, server_default=func.now())
 
+    user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="invoices")
-    # Add inside Invoice class
-    disputes = relationship("Dispute", back_populates="invoice")
+    disputes = relationship("Dispute", back_populates="invoice")  # ✅ Add this
+
+
 

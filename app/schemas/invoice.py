@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 
 class InvoiceStatus(str, Enum):
@@ -8,18 +8,18 @@ class InvoiceStatus(str, Enum):
     PAID = "PAID"
     OVERDUE = "OVERDUE"
 
-class InvoiceBase(BaseModel):
-    invoice_number: str
-    vendor_name: Optional[str] = None
+class InvoiceCreate(BaseModel):
+    vendor_name: str
     amount: float
-    due_date: Optional[date] = None
-    status: InvoiceStatus = InvoiceStatus.PENDING
 
-class InvoiceCreate(InvoiceBase):
-    pass
-
-class InvoiceOut(InvoiceBase):
+class InvoiceOut(BaseModel):
     id: int
+    invoice_number: str
+    vendor_name: str
+    amount: float
+    due_date: date
+    status: InvoiceStatus
+    created_at: datetime
     user_id: int
 
     class Config:
