@@ -23,7 +23,7 @@ from app.db.session import get_db
 from app.core.auth import get_current_user
 from app.models.user import User
 
-@router.post("/disputes/")
+@router.post("/dispute/")
 def create_dispute(
     dispute: DisputeCreate,
     db: Session = Depends(get_db),
@@ -52,3 +52,61 @@ def list_disputes(
     current_user: User = Depends(get_current_user)
 ):
     return db.query(Dispute).join(Invoice).filter(Invoice.user_id == current_user.id).all()
+@router.get("/invoices/{invoice_id}/disputes", response_model=List[DisputeOut])
+def get_disputes_for_invoice(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Check the invoice belongs to the user
+    invoice = db.query(Invoice).filter(
+        Invoice.id == invoice_id,
+        Invoice.user_id == current_user.id
+    ).first()
+
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found or unauthorized")
+
+    return db.query(Dispute).filter(Dispute.invoice_id == invoice_id).all()
+
+from fastapi import Path
+
+@router.put("/dispute/{dispute_id}/resolve", response_model=DisputeOut)
+def resolve_dispute(
+    dispute_id: int = Path(..., title="The ID of the dispute to resolve"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dispute = db.query(Dispute).join(Invoice).filter(
+        Dispute.id == dispute_id,
+        Invoice.user_id == current_user.id
+    ).first()
+
+    if not dispute:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+
+    dispute.status = "RESOLVED"
+    db.commit()
+    db.refresh(dispute)
+    return dispute
+
+    
+
+@router.post("/dispute/{dispute_id}/resolve", response_model=DisputeOut)
+def resolve_dispute(
+    dispute_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    dispute = db.query(Dispute).join(Invoice).filter(
+        Dispute.id == dispute_id,
+        Invoice.user_id == current_user.id
+    ).first()
+
+    if not dispute:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+
+    dispute.status = "RESOLVED"
+    db.commit()
+    db.refresh(dispute)
+    return dispute

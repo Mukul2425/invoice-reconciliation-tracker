@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { getInvoices, createInvoice, createDispute } from "./api";
+import Disputes from "./Disputes"; // add at top
+
+
+
 
 function Dashboard({ token }) {
   const [invoices, setInvoices] = useState([]);
@@ -54,6 +58,7 @@ function Dashboard({ token }) {
 
     try {
       await createDispute(invoiceId, reason, token);
+      fetchInvoices(); // this refreshes dispute list
       setMessage(`Dispute submitted for invoice #${invoiceId}`);
       setError("");
       setDisputeReasons((prev) => ({ ...prev, [invoiceId]: "" }));
@@ -109,7 +114,7 @@ function Dashboard({ token }) {
               <div className="text-sm text-gray-600 mb-2">
                 Invoice #: {inv.invoice_number} | Status: {inv.status}
               </div>
-
+                <Disputes token={token} invoiceId={inv.id} />
               <input
                 type="text"
                 placeholder="Reason for dispute"

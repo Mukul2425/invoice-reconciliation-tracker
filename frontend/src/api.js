@@ -87,7 +87,7 @@ export async function createInvoice(vendorName, amount, token) {
 }
 // Create dispute (for a given invoice)
 export async function createDispute(invoiceId, reason, token) {
-  const response = await fetch(`${BASE_URL}/disputes/`, {
+  const response = await fetch(`${BASE_URL}/dispute/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,6 +104,41 @@ export async function createDispute(invoiceId, reason, token) {
     console.error("Dispute creation failed", response.status);
     console.error("Response body:", errorText);
     throw new Error("Create dispute failed");
+  }
+
+  return await response.json();
+}
+
+// Fetch disputes by invoice ID
+export async function getDisputes(invoiceId, token) {
+  const response = await fetch(`${BASE_URL}/invoices/${invoiceId}/disputes`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Failed to fetch disputes", response.status, errorText);
+    throw new Error("Fetch disputes failed");
+  }
+
+  return await response.json();
+}
+
+// Resolve a dispute by ID
+export async function resolveDispute(disputeId, token) {
+  const response = await fetch(`${BASE_URL}/dispute/${disputeId}/resolve`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Failed to resolve dispute", response.status, errorText);
+    throw new Error("Resolve dispute failed");
   }
 
   return await response.json();

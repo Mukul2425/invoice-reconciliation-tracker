@@ -5,13 +5,24 @@ from datetime import datetime
 class DisputeBase(BaseModel):
     reason: str
 
-class DisputeCreate(DisputeBase):
-    invoice_id: int
+from pydantic import BaseModel
+from datetime import datetime
+from enum import Enum
 
-class DisputeOut(DisputeBase):
-    id: int
-    created_at: datetime
+class DisputeStatus(str, Enum):
+    PENDING = "PENDING"
+    RESOLVED = "RESOLVED"
+
+class DisputeCreate(BaseModel):
     invoice_id: int
+    reason: str
+
+class DisputeOut(BaseModel):
+    id: int
+    invoice_id: int
+    reason: str
+    status: DisputeStatus
+    created_at: datetime
 
     class Config:
         from_attributes = True
